@@ -1,28 +1,15 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import {View } from 'react-native';
+import Main from './src/components/Main';
 
 
 export default function App() {
  
 
   return (
-    <View style={styles.container}>
-      <Text >Scan Code</Text>
+    <View>
+     <Main/>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centerText: {
-    fontSize: 18,
-    padding: 32,
-    color: '#777',
-  },
-});
