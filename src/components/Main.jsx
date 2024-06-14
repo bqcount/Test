@@ -83,7 +83,7 @@ function Main() {
         />
       </View>
       {/* Renderiza List solo si showList es true */}
-      {showList && isActive && <List />}
+   {/*    {showList && isActive && <List />} */}
     </>
   );
 }
