@@ -16,7 +16,6 @@ const odooService = {
           login: username,
           password: password
         }
-
       });
 
       const uid = response.data.result;
@@ -28,7 +27,7 @@ const odooService = {
         return null;
       }
     } catch (error) {
-      console.error('Error authenticating with Odoo:', error);
+      console.error('Error authenticating with Odoo:', error.response ? error.response.data : error.message);
       return null;
     }
   },
@@ -43,7 +42,6 @@ const odooService = {
           method: 'search_read',
           args: [[], ['name', 'work_email']]
         }
-        
       }, {
         auth: {
           username: uid,
@@ -53,7 +51,7 @@ const odooService = {
 
       return response.data.result;
     } catch (error) {
-      console.error('Error fetching employees from Odoo:', error);
+      console.error('Error fetching employees from Odoo:', error.response ? error.response.data : error.message);
       return [];
     }
   }
