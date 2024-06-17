@@ -17,15 +17,15 @@ const App = () => {
       } catch (error) {
         console.error('Error fetching employees:', error);
       }
-    };
+    }; 
 
     fetchEmployees();
   }, []);
 
   return (
     <View>
-     <Main/>
-     <Text>Employee List</Text>
+      <Main />
+      <Text>Employee List</Text>
       {employees.map((emp, index) => (
         <Text key={index}>{emp.name} - {emp.work_email}</Text>
       ))}
@@ -33,5 +33,4 @@ const App = () => {
   );
 }
 
-
-export default App
+export default App;

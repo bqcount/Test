@@ -11,10 +11,11 @@
   "dependencies": {
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/stack": "^6.3.29",
-    "axios": "^1.7.2",
+    "axios": "^0.21.4",
     "babel-plugin-module-resolver": "^5.0.2",
     "expo": "~51.0.13",
     "expo-status-bar": "~1.12.1",
+    "fast-xml-parser": "^4.4.0",
     "http": "^0.0.1-security",
     "react": "18.2.0",
     "react-native": "0.74.2",

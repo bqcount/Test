@@ -11,6 +11,7 @@ function List() {
       try {
         const response = await api.get('/users');
         setUsers(response.data);
+      
       } catch (error) {
         console.error('Error fetching users:', error);
       }
