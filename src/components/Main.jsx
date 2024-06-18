@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, Button } from 'react-native';
-import List from './List';
+import React, { useState, useEffect } from "react";
+import { Text, View, Button } from "react-native";
+import List from "./List";
 
 function Main() {
   const [currentTime, setCurrentTime] = useState(0); // Tiempo en segundos
@@ -29,7 +29,7 @@ function Main() {
 
     // Alterna el estado de isActive al hacer clic en el botón
     setIsActive(!isActive);
-    
+
     // Mostrar List cuando se inicia el temporizador
     if (!isActive) {
       setShowList(true);
@@ -52,38 +52,43 @@ function Main() {
 
   const formatTime = (timeInSeconds) => {
     // Función para formatear el tiempo en HH:MM:SS
-    const hours = Math.floor(timeInSeconds / 3600).toString().padStart(2, '0');
-    const minutes = Math.floor((timeInSeconds % 3600) / 60).toString().padStart(2, '0');
-    const seconds = (timeInSeconds % 60).toString().padStart(2, '0');
+    const hours = Math.floor(timeInSeconds / 3600)
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.floor((timeInSeconds % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = (timeInSeconds % 60).toString().padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
   };
 
   return (
     <>
-      <View style={{
-        display: "flex",
-        flexDirection: "column",
-        marginTop: 30,
-        alignItems: "center"
-      }}>
-        <Text style={{ padding: 10 }}>Filling Room Station</Text>
+      <View
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          marginTop: 30,
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ padding: 10,fontSize:24,fontWeight:"bold" }}>Filling Room Station</Text>
+        <View style={{ flexDirection:"row",width:100,justifyContent:"space-between"}}>
+
         <Button
           style={{ marginTop: 10 }}
-          title={isActive ? 'Stop' : 'Scan'}
+          title={isActive ? "Stop" : "Scan"}
           onPress={incrementCount}
         />
-       
+        <Button style={{ marginTop: 40 }} title="Reset" onPress={resetTimer} />
+        </View>
+
         {isActive && (
-          <Text style={{ marginTop: 10 }}>Time: {formatTime(currentTime)}</Text>
+          <Text style={{ marginTop: 10 ,fontSize:18,fontWeight:"bold"}}>Time: {formatTime(currentTime)}</Text>
         )}
-        <Button
-          style={{ marginTop: 30 }}
-          title="Reset"
-          onPress={resetTimer}
-        />
       </View>
       {/* Renderiza List solo si showList es true */}
-      {showList && isActive && <List />} 
+      {showList && isActive && <List />}
     </>
   );
 }

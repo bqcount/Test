@@ -1,10 +1,10 @@
-import axios from 'axios';
-import { XMLParser } from 'fast-xml-parser';
+import axios from "axios";
+import { XMLParser } from "fast-xml-parser";
 
-const url = 'https://filling-room3.odoo.com';
-const db = 'filling-room3';
-const username = 'bqcount@gmail.com';
-const password = '99091310514.JSE';
+const url = "https://filling-room3.odoo.com";
+const db = "filling-room3";
+const username = "bqcount@gmail.com";
+const password = "99091310514.JSE";
 
 const parser = new XMLParser();
 
@@ -23,20 +23,20 @@ const odooService = {
         </methodCall>`;
 
       const response = await axios.post(`${url}/xmlrpc/2/common`, body, {
-        headers: { 'Content-Type': 'text/xml' }
+        headers: { "Content-Type": "text/xml" },
       });
 
       const result = parser.parse(response.data);
       const uid = result.methodResponse.params.param.value.int;
       if (uid) {
-        console.log('Authentication success:', uid);
+        console.log("Authentication success:", uid);
         return uid;
       } else {
-        console.log('Authentication failed');
+        console.log("Authentication failed");
         return null;
       }
     } catch (error) {
-      console.error('Error authenticating with Odoo:', error);
+      console.error("Error authenticating with Odoo:", error);
       return null;
     }
   },
@@ -58,30 +58,40 @@ const odooService = {
         </methodCall>`;
 
       const response = await axios.post(`${url}/xmlrpc/2/object`, body, {
-        headers: { 'Content-Type': 'text/xml' }
+        headers: { "Content-Type": "text/xml" },
       });
 
       const result = parser.parse(response.data);
       if (result.methodResponse.fault) {
-        const faultDetails = result.methodResponse.fault.value.struct.member.reduce((acc, member) => {
-          acc[member.name] = member.value.string || member.value.int;
-          return acc;
-        }, {});
-        console.error('Fault response:', faultDetails);
-        throw new Error(`Error in XML-RPC call: ${JSON.stringify(faultDetails)}`);
+        const faultDetails =
+          result.methodResponse.fault.value.struct.member.reduce(
+            (acc, member) => {
+              acc[member.name] = member.value.string || member.value.int;
+              return acc;
+            },
+            {}
+          );
+        console.error("Fault response:", faultDetails);
+        throw new Error(
+          `Error in XML-RPC call: ${JSON.stringify(faultDetails)}`
+        );
       }
 
-      const employees = result.methodResponse.params.param.value.array.data.value.map(emp => ({
-        name: emp.struct.member.find(m => m.name === 'name').value.string,
-        work_email: emp.struct.member.find(m => m.name === 'work_email').value.string
-      }));
+      const employees =
+        result.methodResponse.params.param.value.array.data.value.map(
+          (emp) => ({
+            name: emp.struct.member.find((m) => m.name === "name").value.string,
+            work_email: emp.struct.member.find((m) => m.name === "work_email")
+              .value.string,
+          })
+        );
 
       return employees;
     } catch (error) {
-      console.error('Error fetching employees from Odoo:', error);
+      console.error("Error fetching employees from Odoo:", error);
       return [];
     }
-  }
+  },
 };
 
 export default odooService;
