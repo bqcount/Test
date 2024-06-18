@@ -57,8 +57,8 @@ return (
     <View style={styles.table}>
       {/* Encabezados de la tabla */}
       <View style={[styles.row, styles.header]}>
-        <Text style={styles.cell}>Nombre</Text>
-        <Text style={styles.cell}>Email</Text>
+        <Text style={styles.headers}>Nombre</Text>
+        <Text style={styles.headers}>Email</Text>
       </View>
       {/* Filas de empleados */}
       {employees.map((emp, index) => (
@@ -98,6 +98,15 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#000',
+  
+  },
+  headers: {
+    flex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#000',
+    fontWeight:"bold",
+    fontSize:17
   },
 });
 export default List;

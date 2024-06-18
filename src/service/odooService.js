@@ -76,7 +76,7 @@ const odooService = {
           `Error in XML-RPC call: ${JSON.stringify(faultDetails)}`
         );
       }
-
+      //Parsea los datos
       const employees =
         result.methodResponse.params.param.value.array.data.value.map(
           (emp) => ({

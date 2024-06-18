@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, Button } from "react-native";
+import { Text, View, Button, TouchableOpacity } from "react-native";
 import List from "./List";
+import BluetoothScanner from "./BluetoothScanner"
 
 function Main() {
   const [currentTime, setCurrentTime] = useState(0); // Tiempo en segundos
@@ -72,23 +73,54 @@ function Main() {
           alignItems: "center",
         }}
       >
-        <Text style={{ padding: 10,fontSize:24,fontWeight:"bold" }}>Filling Room Station</Text>
-        <View style={{ flexDirection:"row",width:100,justifyContent:"space-between"}}>
-
-        <Button
-          style={{ marginTop: 10 }}
-          title={isActive ? "Stop" : "Scan"}
-          onPress={incrementCount}
-        />
-        <Button style={{ marginTop: 40 }} title="Reset" onPress={resetTimer} />
+        <Text style={{ padding: 10, fontSize: 24, fontWeight: "bold" }}>
+          Filling Room Station
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            width: 100,
+            justifyContent: "space-between",
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              marginTop: 40,
+              marginRight: 10,
+              backgroundColor: "blue",
+              padding: 10,
+              borderRadius: 5,
+            }}
+            onPress={incrementCount}
+          >
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 18 }}>
+              {isActive ? "Stop" : "Scan"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              marginTop: 40,
+              backgroundColor: "green",
+              padding: 10,
+              borderRadius: 5,
+            }}
+            onPress={resetTimer}
+          >
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 18 }}>
+              Reset
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {isActive && (
-          <Text style={{ marginTop: 10 ,fontSize:18,fontWeight:"bold"}}>Time: {formatTime(currentTime)}</Text>
+          <Text style={{ marginTop: 10, fontSize: 18, fontWeight: "bold" }}>
+            Time: {formatTime(currentTime)}
+          </Text>
         )}
       </View>
       {/* Renderiza List solo si showList es true */}
       {showList && isActive && <List />}
+      <BluetoothScanner/>
     </>
   );
 }
