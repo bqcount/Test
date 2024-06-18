@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, Button, TouchableOpacity } from "react-native";
 import List from "./List";
-import BluetoothScanner from "./BluetoothScanner"
+//import BluetoothScanner from "./BluetoothScanner"
 
 function Main() {
   const [currentTime, setCurrentTime] = useState(0); // Tiempo en segundos
@@ -120,7 +120,7 @@ function Main() {
       </View>
       {/* Renderiza List solo si showList es true */}
       {showList && isActive && <List />}
-      <BluetoothScanner/>
+     {/*  <BluetoothScanner/> */}
     </>
   );
 }
