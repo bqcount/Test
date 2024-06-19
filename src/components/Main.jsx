@@ -95,6 +95,7 @@ function Main() {
           >
             <Text style={{ color: "white", fontWeight: "bold", fontSize: 18 }}>
               {isActive ? "Stop" : "Scan"}
+              
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

@@ -6,6 +6,7 @@ import odooService from "../service/odooService";
 
 function List() {
   const [employees, setEmployees] = useState([]);
+  const [orderSent, setOrderSent]= useState([]);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -23,6 +24,22 @@ function List() {
     fetchEmployees();
   }, []);
 
+  useEffect(()=>{
+    const fetchOrderSent = async ()=>{
+      try {
+        const uid = await odooService.authenticate();
+        if (uid) {
+          const orders = await odooService.getPrueba(uid)
+          setOrderSent(orders);
+          console.log("Orders:",orders);
+        }
+        
+      } catch (error) {
+        console.error("Error fetching sent orders:", error);
+      }
+    }
+    fetchOrderSent()
+  },[]);
 
 /*   useEffect(() => {
     const fetchUsers = async () => {
@@ -65,6 +82,29 @@ return (
         <View key={index} style={styles.row}>
           <Text style={styles.cell}>{emp.name}</Text>
           <Text style={styles.cell}>{emp.work_email}</Text>
+        </View>
+      ))}
+    </View>
+
+    <View style={{display:"flex",flexDirection:"row",justifyContent:"center"}}>
+     <Text style={styles.title}>Orders Sent List</Text>
+    </View>
+    <View style={styles.table}>
+      {/* Encabezados de la tabla */}
+      <View style={[styles.row, styles.header]}>
+        <Text style={styles.headers}>Cliente</Text>
+        <Text style={styles.headers}>Fecha </Text>
+        <Text style={styles.headers}>Cantidad </Text>
+        <Text style={styles.headers}>Estado </Text>
+      </View>
+      {/* Filas de empleados */}
+
+      {orderSent.map((order, index) => (
+        <View key={index} style={styles.row}>
+          <Text style={styles.cell}>{order.partner_id}</Text> 
+          <Text style={styles.cell}>{order.create_date}</Text>
+          <Text style={styles.cell}>{order.amount_total}</Text>
+          <Text style={styles.cell}>{order.state}</Text>
         </View>
       ))}
     </View>
