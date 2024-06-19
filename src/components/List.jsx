@@ -8,7 +8,7 @@ function List() {
   const [employees, setEmployees] = useState([]);
   const [orderSent, setOrderSent]= useState([]);
 
-  useEffect(() => {
+ /*  useEffect(() => {
     const fetchEmployees = async () => {
       try {
         const uid = await odooService.authenticate();
@@ -19,17 +19,17 @@ function List() {
       } catch (error) {
         console.error("Error fetching employees:", error);
       }
-    };
+    }; 
 
     fetchEmployees();
-  }, []);
+  }, []);*/
 
   useEffect(()=>{
     const fetchOrderSent = async ()=>{
       try {
         const uid = await odooService.authenticate();
         if (uid) {
-          const orders = await odooService.getPrueba(uid)
+          const orders = await odooService.getSaleOrdersSent(uid)
           setOrderSent(orders);
           console.log("Orders:",orders);
         }
@@ -71,20 +71,20 @@ return (
     <View style={{display:"flex",flexDirection:"row",justifyContent:"center"}}>
      <Text style={styles.title}>Employee List</Text>
     </View>
-    <View style={styles.table}>
-      {/* Encabezados de la tabla */}
+    {/* <View style={styles.table}>
+   
       <View style={[styles.row, styles.header]}>
         <Text style={styles.headers}>Nombre</Text>
         <Text style={styles.headers}>Email</Text>
       </View>
-      {/* Filas de empleados */}
+    
       {employees.map((emp, index) => (
         <View key={index} style={styles.row}>
           <Text style={styles.cell}>{emp.name}</Text>
           <Text style={styles.cell}>{emp.work_email}</Text>
         </View>
       ))}
-    </View>
+    </View> */}
 
     <View style={{display:"flex",flexDirection:"row",justifyContent:"center"}}>
      <Text style={styles.title}>Orders Sent List</Text>

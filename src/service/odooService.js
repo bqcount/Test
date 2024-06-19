@@ -42,32 +42,37 @@ const odooService = {
   },
 
   callOdoo: async (uid, model, method, fields, domain = []) => {
-    const domainXml = domain
-      .map((d) => {
-        const [field, operator, value] = d;
-        let valueXml;
-        if (Array.isArray(value)) {
-          valueXml = `<array><data>${value
-            .map((v) => `<value><string>${v}</string></value>`)
-            .join("")}</data></array>`;
-        } else if (typeof value === "string") {
-          valueXml = `<string>${value}</string>`;
-        } else if (typeof value === "number") {
-          valueXml = `<double>${value}</double>`;
-        } else if (typeof value === "boolean") {
-          valueXml = `<boolean>${value ? 1 : 0}</boolean>`;
-        } else {
-          valueXml = `<string>${value}</string>`;
-        }
-        return `
-        <value><array><data>
-          <value><string>${field}</string></value>
-          <value><string>${operator}</string></value>
-          <value>${valueXml}</value>
-        </data></array></value>`;
-      })
-      .join("");
-
+    // Construcción del XML para el parámetro domain
+    let domainXml = '';
+    console.log("Domain:::::::",domain);
+    if (domain.length > 0) {
+      const [field, operator, value] = domain; 
+      domainXml = `
+        <value>
+          <array>
+            <data>
+              <value>
+                <struct>
+                  <member>
+                    <name>domain</name>
+                    <value>
+                      <array>
+                        <data>
+                          <value><string>${field}</string></value>
+                          <value><string>${operator}</string></value>
+                          <value>${typeof value === 'string' ? `<string>${value}</string>` : `<${typeof value}>${value}</${typeof value}>`}</value>
+                        </data>
+                      </array>
+                    </value>
+                  </member>
+                </struct>
+              </value>
+            </data>
+          </array>
+        </value>`;
+    }
+  
+    // Construcción del cuerpo completo del XML
     const body = `<?xml version="1.0"?>
       <methodCall>
         <methodName>execute_kw</methodName>
@@ -78,12 +83,26 @@ const odooService = {
           <param><value><string>${model}</string></value></param>
           <param><value><string>${method}</string></value></param>
           <param><value><array><data>${domainXml}</data></array></value></param>
-          <param><value><struct><member><name>fields</name><value><array><data>${fields
-            .map((field) => `<value><string>${field}</string></value>`)
-            .join("")}</data></array></value></member></struct></value></param>
+          <param>
+            <value>
+              <struct>
+                <member>
+                  <name>fields</name>
+                  <value>
+                    <array>
+                      <data>
+                        ${fields.map((field) => `<value><string>${field}</string></value>`).join('')}
+                      </data>
+                    </array>
+                  </value>
+                </member>
+              </struct>
+            </value>
+          </param>
         </params>
       </methodCall>`;
-
+  
+     console.log("BODYYYY:",body);
     try {
       const response = await axios.post(`${url}/xmlrpc/2/object`, body, {
         headers: { "Content-Type": "text/xml" },
@@ -106,8 +125,8 @@ const odooService = {
         );
       }
 
-      const records =
-        result.methodResponse.params.param.value.array.data.value.map(
+      const records = result.methodResponse.params.param.value.array.data.value
+       /*  result.methodResponse.params.param.value.array.data.value.map(
           (record) => {
             const recordObj = {};
             record.struct.member.forEach((m) => {
@@ -123,14 +142,15 @@ const odooService = {
             });
             return recordObj;
           }
-        );
+        ); */
 
       return records;
     } catch (error) {
       console.error("Error fetching data from Odoo:", error);
       return [];
     }
-  },
+     
+  }, 
 
   getEmployees: async (uid) => {
     const fields = ["name", "work_email"];
@@ -159,12 +179,15 @@ const odooService = {
 
   getSaleOrdersSent: async (uid) => {
     const fields = ["partner_id", "create_date", "amount_total", "state"];
-    /*  const domain = [['state', 'in', ['sent']]];  */
+    const domain = ['state', '=', 'sent'];  
+
+
     return await odooService.callOdoo(
       uid,
       "sale.order",
-      "search_read",
-      fields /* , domain */
+      "read",
+      fields ,
+      domain 
     );
   },
 };
