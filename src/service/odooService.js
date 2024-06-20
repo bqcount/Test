@@ -162,8 +162,8 @@ const odooService = {
   confirmOrders: async (uid, orders) => {
     try {
       for (const order of orders) {
-        const orderId = order.id; // Suponiendo que cada orden tiene un campo `id`
-        const method = "action_confirm"; // Método correcto para confirmar
+        const orderId = order.id;
+        const method = "action_confirm";
         const body = `<?xml version="1.0"?>
           <methodCall>
             <methodName>execute_kw</methodName>
