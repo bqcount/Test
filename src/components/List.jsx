@@ -6,10 +6,9 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 
 function List() {
-  const [employees, setEmployees] = useState([]);
   const [orderSent, setOrderSent] = useState([]);
   const [uid, setUid] = useState(null);
-  const [isOrderConfirm,setIOrderConfirm]=useState(false)
+  const [confirmedOrders, setConfirmedOrders] = useState({});
 
   useEffect(() => {
     const fetchOrderSent = async () => {
@@ -28,15 +27,15 @@ function List() {
     fetchOrderSent();
   }, []);
 
-  const handleConfirmOrders = async () => {
+  const handleConfirmOrder = async (orderId) => {
     if (uid) {
-      const confirmed = await odooService.confirmOrders(uid, orderSent);
+      const orderToConfirm = orderSent.find(order => order.id === orderId);
+      const confirmed = await odooService.confirmOrders(uid, [orderToConfirm]);
       if (confirmed) {
-        setIOrderConfirm(true)
-        Alert.alert("Success", "Orders have been confirmed.");
-        // Refresh the orderSent list here if needed
+        setConfirmedOrders(prev => ({ ...prev, [orderId]: true }));
+        Alert.alert("Success", "Order has been confirmed.");
       } else {
-        Alert.alert("Error", "Failed to confirm orders.");
+        Alert.alert("Error", "Failed to confirm order.");
       }
     } else {
       Alert.alert("Error", "User not authenticated.");
@@ -63,17 +62,18 @@ function List() {
             <Text style={styles.cell}>{order.create_date}</Text>
            {/*  <Text style={styles.cell}>{order.amount_total}</Text> */}
             <Text style={styles.cell}>{order.state}</Text>
-            {!isOrderConfirm && (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleConfirmOrders}
-              >
-                <FontAwesome5 name="tasks" size={24} color="blue" />
-              </TouchableOpacity>
-            )}
-             {isOrderConfirm && (
-        <MaterialIcons name="task-alt" size={24} color="green" style={styles.icon} />
-      )}
+            <View style={styles.cell}>
+              {!confirmedOrders[order.id] ? (
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => handleConfirmOrder(order.id)}
+                >
+                  <FontAwesome5 name="tasks" size={24} color="blue" />
+                </TouchableOpacity>
+              ) : (
+                <MaterialIcons name="task-alt" size={24} color="green" style={styles.icon} />
+              )}
+            </View>
           </View>
         ))}
       </View>
@@ -117,16 +117,13 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 20,
-  
     padding: 10,
     borderRadius: 5,
   },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 18,
-    textAlign: "center",
-  }
+  icon: {
+    textAlign: 'center',
+    marginTop: 10,
+  },
 });
 
 export default List;
