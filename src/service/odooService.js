@@ -41,36 +41,26 @@ const odooService = {
     }
   },
 
-  callOdoo: async (uid, model, method, fields,domain = []) => {
-    let domainXml = '';
-    console.log("Domain:::::::",domain);
-    if (domain.length > 0) {
-      domainXml = `
-        <value>
-          <array>
-            <data>
+  callOdoo: async (uid, model, method, fields, domain = []) => {
+    const domainXml = `
+      <value>
+        <array>
+          <data>
+            ${domain.map(([field, operator, value]) => `
               <value>
                 <array>
                   <data>
-                    ${domain.map(([field, operator, value]) => `
-                      <value>
-                        <array>
-                          <data>
-                            <value><string>${field}</string></value>
-                            <value><string>${operator}</string></value>
-                            <value>${typeof value === 'string' ? `<string>${value}</string>` : `<${typeof value}>${value}</${typeof value}>`}</value>
-                          </data>
-                        </array>
-                      </value>
-                    `).join('')}
+                    <value><string>${field}</string></value>
+                    <value><string>${operator}</string></value>
+                    <value>${typeof value === 'string' ? `<string>${value}</string>` : `<${typeof value}>${value}</${typeof value}>`}</value>
                   </data>
                 </array>
               </value>
-            </data>
-          </array>
-        </value>`;
-    }
-  
+            `).join('')}
+          </data>
+        </array>
+      </value>`;
+
     const body = `<?xml version="1.0"?>
       <methodCall>
         <methodName>execute_kw</methodName>
@@ -99,14 +89,15 @@ const odooService = {
           </param>
         </params>
       </methodCall>`;
-  
-    console.log("BODYYYY:",body);
+
+    console.log("Request body:", body);
     try {
       const response = await axios.post(`${url}/xmlrpc/2/object`, body, {
         headers: { "Content-Type": "text/xml" },
       });
 
       const result = parser.parse(response.data);
+      console.log("Response result:", JSON.stringify(result, null, 2));
 
       if (result.methodResponse.fault) {
         const faultDetails = result.methodResponse.fault.value.struct.member.reduce(
@@ -120,23 +111,32 @@ const odooService = {
         throw new Error(`Error in XML-RPC call: ${JSON.stringify(faultDetails)}`);
       }
 
-      const records = result.methodResponse.params.param.value.array.data.value.map(
-        (record) => {
-          const recordObj = {};
-          record.struct.member.forEach((m) => {
-            if (m.name === "partner_id") {
-              recordObj[m.name] = m.value.array.data.value.map(
-                (nestedValue) => nestedValue.string || nestedValue.int || null
-              );
-            } else if (m.name === "amount_total") {
-              recordObj[m.name] = m.value.double || m.value.string;
-            } else {
-              recordObj[m.name] = m.value.string || m.value.int || null;
-            }
-          });
-          return recordObj;
-        }
-      );
+      // Check and handle both single and multiple order responses
+      const params = result.methodResponse.params.param.value;
+      if (!params || !params.array || !params.array.data) {
+        console.error("Unexpected response format:", JSON.stringify(result, null, 2));
+        throw new Error("Expected an array of values in the response");
+      }
+
+      const valuesArray = Array.isArray(params.array.data.value)
+        ? params.array.data.value
+        : [params.array.data.value];  // Handle single value case
+
+      const records = valuesArray.map((record) => {
+        const recordObj = {};
+        record.struct.member.forEach((m) => {
+          if (m.name === "partner_id") {
+            recordObj[m.name] = m.value.array.data.value.map(
+              (nestedValue) => nestedValue.string || nestedValue.int || null
+            );
+          } else if (m.name === "amount_total") {
+            recordObj[m.name] = m.value.double || m.value.string;
+          } else {
+            recordObj[m.name] = m.value.string || m.value.int || null;
+          }
+        });
+        return recordObj;
+      });
 
       return records;
     } catch (error) {
@@ -151,13 +151,11 @@ const odooService = {
   },
 
   getSaleOrdersSent: async (uid) => {
-    const fields = ["id", "partner_id", "create_date", "amount_total", "state"];
-    const orders = await odooService.callOdoo(uid, "sale.order", "search_read", fields);
-    const filteredOrders = orders.filter(order => order.state == "sent");
-    console.log("Filtered Orders :::: ", filteredOrders);
-    return filteredOrders;
+    const fields = ["partner_id", "create_date", "amount_total", "state"];
+    const domain = [['state', '=', 'sale']];
+
+    return await odooService.callOdoo(uid, "sale.order", "search_read", fields, domain);
   },
-  
 
   confirmOrders: async (uid, orders) => {
     try {
@@ -176,11 +174,11 @@ const odooService = {
               <param><value><array><data><value><int>${orderId}</int></value></data></array></value></param>
             </params>
           </methodCall>`;
-  
+
         const response = await axios.post(`${url}/xmlrpc/2/object`, body, {
           headers: { "Content-Type": "text/xml" },
         });
-  
+
         const result = parser.parse(response.data);
         if (result.methodResponse.fault) {
           const faultDetails = result.methodResponse.fault.value.struct.member.reduce(
@@ -201,9 +199,6 @@ const odooService = {
       return false;
     }
   },
-  
-  }
- 
-
+}
 
 export default odooService;
