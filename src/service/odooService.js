@@ -152,7 +152,7 @@ const odooService = {
 
   getSaleOrdersSent: async (uid) => {
     const fields = ["partner_id", "create_date", "amount_total", "state"];
-    const domain = [['state', '=', 'sale']];
+    const domain = [['state', '=', 'sent']];
 
     return await odooService.callOdoo(uid, "sale.order", "search_read", fields, domain);
   },

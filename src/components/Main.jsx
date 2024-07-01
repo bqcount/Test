@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, Button, TouchableOpacity } from "react-native";
+import { Text, View, Button, TouchableOpacity,TextInput } from "react-native";
 import List from "./List";
+
 //import BluetoothScanner from "./BluetoothScanner"
 
 function Main() {
   const [currentTime, setCurrentTime] = useState(0); // Tiempo en segundos
   const [isActive, setIsActive] = useState(false); // Estado del temporizador
-  const [count, setCount] = useState(0); // Contador de clics en el botón
-  const [isEven, setIsEven] = useState(false); // Indica si count es par o impar
   const [showList, setShowList] = useState(false); // Estado para mostrar List
+  const [scannedValue, setScannedValue] = useState(""); // Estado para almacenar el valor escaneado
+
 
   useEffect(() => {
     // Función para actualizar el tiempo cada segundo
@@ -23,17 +24,18 @@ function Main() {
   }, [isActive]);
 
   const incrementCount = () => {
-    // Incrementa el contador de clics y determina si es par o impar
-    const newCount = count + 1;
-    setCount(newCount);
-    setIsEven(newCount % 2 === 0);
-
+ 
     // Alterna el estado de isActive al hacer clic en el botón
-    setIsActive(!isActive);
+    generateRandomNumericCode()
+    
+   
 
     // Mostrar List cuando se inicia el temporizador
-    if (!isActive) {
-      setShowList(true);
+    if (!isActive  ) {
+  
+
+        setShowList(true);
+    
     } else {
       // Ocultar List cuando se detiene el temporizador
       setShowList(false);
@@ -44,11 +46,9 @@ function Main() {
     // Detiene el temporizador y reinicia el tiempo y el contador
     setIsActive(false);
     setCurrentTime(0);
-    setCount(0);
-    setIsEven(false);
-
     // Ocultar List al reiniciar
     setShowList(false);
+    setScannedValue("")
   };
 
   const formatTime = (timeInSeconds) => {
@@ -63,6 +63,19 @@ function Main() {
     return `${hours}:${minutes}:${seconds}`;
   };
 
+  const generateRandomNumericCode = () => {
+    let code = '';
+    for (let i = 0; i < 12; i++) {
+      const randomNumber = Math.floor(Math.random() * 10); // Genera un número aleatorio del 0 al 9
+      code += randomNumber.toString();
+    }
+    setScannedValue(code)
+    setIsActive(!isActive);
+    return code;
+  };
+  
+  // Obtiene el tiempo aleatorio entre 10 y 25 minutos en milésimas de segundo
+
   return (
     <>
       <View
@@ -76,6 +89,7 @@ function Main() {
         <Text style={{ padding: 10, fontSize: 24, fontWeight: "bold" }}>
           Filling Room Station
         </Text>
+       
         <View
           style={{
             flexDirection: "row",
@@ -111,8 +125,17 @@ function Main() {
               Reset
             </Text>
           </TouchableOpacity>
+         
         </View>
-
+       
+        <View>
+          <TextInput 
+           keyboardType="text"
+           placeholder="scanned code"
+           value={scannedValue}
+           onChangeText={(text) => setScannedValue(text)}
+           />
+        </View>
         {isActive && (
           <Text style={{ marginTop: 10, fontSize: 18, fontWeight: "bold" }}>
             Time: {formatTime(currentTime)}
@@ -122,6 +145,7 @@ function Main() {
       {/* Renderiza List solo si showList es true */}
       {showList && isActive && <List />}
      {/*  <BluetoothScanner/> */}
+    
     </>
   );
 }
