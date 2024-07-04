@@ -1,10 +1,11 @@
 import axios from "axios";
 import { XMLParser } from "fast-xml-parser";
+import { URL,DB_NAME,USERNAME_DB,PASSWORD } from '@env'
 
-const url = "https://filling-room3.odoo.com";
-const db = "filling-room3";
-const username = "bqcount@gmail.com";
-const password = "99091310514.JSE";
+const url = URL;      
+const db = DB_NAME;    
+const username = USERNAME_DB;  
+const password = PASSWORD; 
 
 const parser = new XMLParser();
 
@@ -114,6 +115,10 @@ const odooService = {
       // Check and handle both single and multiple order responses
       const params = result.methodResponse.params.param.value;
       if (!params || !params.array || !params.array.data) {
+        if(result.length=== 0){
+        console.error("Empty Orders");
+
+        }
         console.error("Unexpected response format:", JSON.stringify(result, null, 2));
         throw new Error("Expected an array of values in the response");
       }

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, Button, TouchableOpacity,TextInput } from "react-native";
+import { Text, View,TouchableOpacity,TextInput,StyleSheet } from "react-native";
 import List from "./List";
-
+import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
+import SettingsDrawer from "./SettingsDrawer";
 //import BluetoothScanner from "./BluetoothScanner"
 
 function Main() {
+  const navigation = useNavigation();
   const [currentTime, setCurrentTime] = useState(0); // Tiempo en segundos
   const [isActive, setIsActive] = useState(false); // Estado del temporizador
   const [showList, setShowList] = useState(false); // Estado para mostrar List
@@ -78,6 +81,11 @@ function Main() {
 
   return (
     <>
+      <View style={styles.viewSettings}>
+      <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
+         <MaterialIcons name="settings" size={30} color="grey" />
+      </TouchableOpacity>
+      </View>
       <View
         style={{
           display: "flex",
@@ -149,5 +157,16 @@ function Main() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  viewSettings:{
+    display:"flex",
+    flexDirection:"row",
+    justifyContent:"flex-end",
+    marginEnd:5,
+    marginTop:25
+  }
+
+});
 
 export default Main;

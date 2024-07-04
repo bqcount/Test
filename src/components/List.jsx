@@ -9,6 +9,7 @@ function List() {
   const [orderSent, setOrderSent] = useState([]);
   const [uid, setUid] = useState(null);
   const [confirmedOrders, setConfirmedOrders] = useState({});
+  const [isEmptyOrders,setIsEmptyOrders]=useState(false)
 
   useEffect(() => {
     const fetchOrderSent = async () => {
@@ -18,6 +19,12 @@ function List() {
           setUid(uid);
           const orders = await odooService.getSaleOrdersSent(uid);
           setOrderSent(orders);
+          if(orders.length === 0){
+            setIsEmptyOrders(true)
+          Alert.alert("Warning", "No hay ninguna orden.");
+          console.log("No hay ninguna orden");
+      
+          }
           console.log("Orders:", orders);
         }
       } catch (error) {
