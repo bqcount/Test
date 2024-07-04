@@ -2,15 +2,22 @@ import axios from "axios";
 import { XMLParser } from "fast-xml-parser";
 import { URL,DB_NAME,USERNAME_DB,PASSWORD } from '@env'
 
-const url = URL;      
+
+/* const url = `${URL}`;
+const db = `${DB_NAME}`;
+const username = `${USERNAME_DB}`;
+const password = `${PASSWORD}`;
+console.log(URL, DB_NAME, USERNAME_DB, PASSWORD); */
+
+/*  const url = URL;      
 const db = DB_NAME;    
 const username = USERNAME_DB;  
 const password = PASSWORD; 
-
+ */
 const parser = new XMLParser();
 
 const odooService = {
-  authenticate: async () => {
+ /* authenticate: async () => {
     try {
       const body = `<?xml version="1.0"?>
         <methodCall>
@@ -41,7 +48,54 @@ const odooService = {
       return null;
     }
   },
+ */
+  authenticate: async (url, dbName, username, password) => {
+    try {
+      // Construir el cuerpo XML para la autenticación
+      const body = `<?xml version="1.0"?>
+        <methodCall>
+          <methodName>authenticate</methodName>
+          <params>
+            <param><value><string>${dbName}</string></value></param>
+            <param><value><string>${username}</string></value></param>
+            <param><value><string>${password}</string></value></param>
+            <param><value><struct></struct></value></param>
+          </params>
+        </methodCall>`;
 
+      // Realizar la solicitud POST a Odoo
+      const response = await axios.post(`${url}/xmlrpc/2/common`, body, {
+        headers: { "Content-Type": "text/xml" },
+      });
+
+      // Parsear la respuesta XML
+      const parser = new XMLParser();
+      const parsedResponse = parser.parse(response.data);
+      console.log("Parsed response:", parsedResponse); // Debugging: imprime la respuesta para verificar su estructura
+
+      // Verificar si hay un error de fault en la respuesta
+      if (parsedResponse.methodResponse?.fault) {
+        const faultValue = parsedResponse.methodResponse.fault.value;
+        console.error("Fault response:", faultValue);
+        throw new Error(`Error en la llamada XML-RPC: ${JSON.stringify(faultValue)}`);
+      }
+
+      // Obtener el UID de la respuesta
+      const uid = parsedResponse.methodResponse?.params?.param?.value?.int;
+      if (uid) {
+        console.log("Authentication success. UID:", uid);
+        return uid;
+      } else {
+        console.log("Authentication failed. No UID found in response.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error autenticando con Odoo:", error);
+      return null;
+    }
+  },
+
+  
   callOdoo: async (uid, model, method, fields, domain = []) => {
     const domainXml = `
       <value>
