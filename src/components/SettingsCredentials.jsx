@@ -1,25 +1,13 @@
 import React, { useState } from "react";
 import { Text, View, TouchableOpacity, TextInput, StyleSheet, Alert } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import odooService from "../service/odooService"; 
+import { useAuth } from "../context/AuthContext";
 
 const SettingsCredentials = () => {
+  const { authenticate } = useAuth();
   const [url, setUrl] = useState('');
   const [dbName, setDbName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
-  const saveData = async () => {
-    try {
-      await AsyncStorage.setItem('url', url);
-      await AsyncStorage.setItem('dbName', dbName);
-      await AsyncStorage.setItem('username', username);
-      await AsyncStorage.setItem('password', password);
-      console.log('Datos guardados correctamente en AsyncStorage');
-    } catch (error) {
-      console.error('Error al guardar datos en AsyncStorage:', error);
-    }
-  };
 
   const handleSaveConfig = async () => {
     try {
@@ -28,18 +16,12 @@ const SettingsCredentials = () => {
         throw new Error('Por favor completa todos los campos');
       }
 
-      // Guardar los datos en AsyncStorage
-      await saveData();
+      // Llamar al método de autenticación del contexto
+      const uid = await authenticate(url, dbName, username, password);
 
-      // Llamar al servicio de Odoo para autenticación
-      const uid = await odooService.authenticate(url, dbName, username, password);
-
-      if (uid !== null) {
+      if (uid) {
         // Mostrar mensaje de éxito
         Alert.alert('Configuración Guardada', 'Los valores de configuración son correctos.');
-      } else {
-        // Mostrar mensaje de error si la autenticación falla
-        Alert.alert('Error', 'La autenticación con Odoo falló. Verifica tus credenciales.');
       }
     } catch (error) {
       // Mostrar mensaje de error si ocurre algún problema

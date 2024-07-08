@@ -1,57 +1,11 @@
 import axios from "axios";
 import { XMLParser } from "fast-xml-parser";
-import { URL,DB_NAME,USERNAME_DB,PASSWORD } from '@env'
 
-
-/* const url = `${URL}`;
-const db = `${DB_NAME}`;
-const username = `${USERNAME_DB}`;
-const password = `${PASSWORD}`;
-console.log(URL, DB_NAME, USERNAME_DB, PASSWORD); */
-
-/*  const url = URL;      
-const db = DB_NAME;    
-const username = USERNAME_DB;  
-const password = PASSWORD; 
- */
 const parser = new XMLParser();
 
 const odooService = {
- /* authenticate: async () => {
-    try {
-      const body = `<?xml version="1.0"?>
-        <methodCall>
-          <methodName>authenticate</methodName>
-          <params>
-            <param><value><string>${db}</string></value></param>
-            <param><value><string>${username}</string></value></param>
-            <param><value><string>${password}</string></value></param>
-            <param><value><struct></struct></value></param>
-          </params>
-        </methodCall>`;
-
-      const response = await axios.post(`${url}/xmlrpc/2/common`, body, {
-        headers: { "Content-Type": "text/xml" },
-      });
-
-      const result = parser.parse(response.data);
-      const uid = result.methodResponse.params.param.value.int;
-      if (uid) {
-        console.log("Authentication success:", uid);
-        return uid;
-      } else {
-        console.log("Authentication failed");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error authenticating with Odoo:", error);
-      return null;
-    }
-  },
- */
   authenticate: async (url, dbName, username, password) => {
     try {
-      // Construir el cuerpo XML para la autenticación
       const body = `<?xml version="1.0"?>
         <methodCall>
           <methodName>authenticate</methodName>
@@ -63,24 +17,23 @@ const odooService = {
           </params>
         </methodCall>`;
 
-      // Realizar la solicitud POST a Odoo
+      console.log("Request Body:", body);
+
       const response = await axios.post(`${url}/xmlrpc/2/common`, body, {
         headers: { "Content-Type": "text/xml" },
       });
 
-      // Parsear la respuesta XML
-      const parser = new XMLParser();
-      const parsedResponse = parser.parse(response.data);
-      console.log("Parsed response:", parsedResponse); // Debugging: imprime la respuesta para verificar su estructura
+      console.log("Response Data:", response.data);
 
-      // Verificar si hay un error de fault en la respuesta
+      const parsedResponse = parser.parse(response.data);
+      console.log("Parsed Response:", parsedResponse);
+
       if (parsedResponse.methodResponse?.fault) {
         const faultValue = parsedResponse.methodResponse.fault.value;
-        console.error("Fault response:", faultValue);
+        console.error("Fault Response:", faultValue);
         throw new Error(`Error en la llamada XML-RPC: ${JSON.stringify(faultValue)}`);
       }
 
-      // Obtener el UID de la respuesta
       const uid = parsedResponse.methodResponse?.params?.param?.value?.int;
       if (uid) {
         console.log("Authentication success. UID:", uid);
@@ -95,8 +48,7 @@ const odooService = {
     }
   },
 
-  
-  callOdoo: async (uid, model, method, fields, domain = []) => {
+  callOdoo: async (url, dbName, uid, password, model, method, fields, domain = []) => {
     const domainXml = `
       <value>
         <array>
@@ -120,7 +72,7 @@ const odooService = {
       <methodCall>
         <methodName>execute_kw</methodName>
         <params>
-          <param><value><string>${db}</string></value></param>
+          <param><value><string>${dbName}</string></value></param>
           <param><value><int>${uid}</int></value></param>
           <param><value><string>${password}</string></value></param>
           <param><value><string>${model}</string></value></param>
@@ -145,14 +97,17 @@ const odooService = {
         </params>
       </methodCall>`;
 
-    console.log("Request body:", body);
+    console.log("Request Body:", body);
+
     try {
       const response = await axios.post(`${url}/xmlrpc/2/object`, body, {
         headers: { "Content-Type": "text/xml" },
       });
 
+      console.log("Response Data:", response.data);
+
       const result = parser.parse(response.data);
-      console.log("Response result:", JSON.stringify(result, null, 2));
+      console.log("Parsed Response:", JSON.stringify(result, null, 2));
 
       if (result.methodResponse.fault) {
         const faultDetails = result.methodResponse.fault.value.struct.member.reduce(
@@ -162,16 +117,14 @@ const odooService = {
           },
           {}
         );
-        console.error("Fault response:", faultDetails);
+        console.error("Fault Response:", faultDetails);
         throw new Error(`Error in XML-RPC call: ${JSON.stringify(faultDetails)}`);
       }
 
-      // Check and handle both single and multiple order responses
       const params = result.methodResponse.params.param.value;
       if (!params || !params.array || !params.array.data) {
-        if(result.length=== 0){
-        console.error("Empty Orders");
-
+        if (result.length === 0) {
+          console.error("Empty Orders");
         }
         console.error("Unexpected response format:", JSON.stringify(result, null, 2));
         throw new Error("Expected an array of values in the response");
@@ -179,7 +132,7 @@ const odooService = {
 
       const valuesArray = Array.isArray(params.array.data.value)
         ? params.array.data.value
-        : [params.array.data.value];  // Handle single value case
+        : [params.array.data.value];
 
       const records = valuesArray.map((record) => {
         const recordObj = {};
@@ -204,19 +157,18 @@ const odooService = {
     }
   },
 
-  getEmployees: async (uid) => {
+  getEmployees: async (url, dbName, uid, password) => {
     const fields = ["name", "work_email"];
-    return await odooService.callOdoo(uid, "hr.employee", "search_read", fields);
+    return await odooService.callOdoo(url, dbName, uid, password, "hr.employee", "search_read", fields);
   },
 
-  getSaleOrdersSent: async (uid) => {
+  getSaleOrdersSent: async (url, dbName, uid, password) => {
     const fields = ["partner_id", "create_date", "amount_total", "state"];
     const domain = [['state', '=', 'sent']];
-
-    return await odooService.callOdoo(uid, "sale.order", "search_read", fields, domain);
+    return await odooService.callOdoo(url, dbName, uid, password, "sale.order", "search_read", fields, domain);
   },
 
-  confirmOrders: async (uid, orders) => {
+  confirmOrders: async (url, dbName, uid, password, orders) => {
     try {
       for (const order of orders) {
         const orderId = order.id;
@@ -225,7 +177,7 @@ const odooService = {
           <methodCall>
             <methodName>execute_kw</methodName>
             <params>
-              <param><value><string>${db}</string></value></param>
+              <param><value><string>${dbName}</string></value></param>
               <param><value><int>${uid}</int></value></param>
               <param><value><string>${password}</string></value></param>
               <param><value><string>sale.order</string></value></param>
