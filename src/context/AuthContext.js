@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import odooService from "../service/odooService";
 
 const AuthContext = createContext();
@@ -11,23 +11,27 @@ export const AuthProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-      const loadStoredData = async () => {
-      const storedUrl = await AsyncStorage.getItem('url');
-      const storedDbName = await AsyncStorage.getItem('dbName');
-      const storedUsername = await AsyncStorage.getItem('username');
-      const storedPassword = await AsyncStorage.getItem('password');
+    const loadStoredData = async () => {
+      try {
+        const storedUrl = await SecureStore.getItemAsync('url');
+        const storedDbName = await SecureStore.getItemAsync('dbName');
+        const storedUsername = await SecureStore.getItemAsync('username');
+        const storedPassword = await SecureStore.getItemAsync('password');
 
-      if (storedUrl && storedDbName && storedUsername && storedPassword) {
-        const uid = await odooService.authenticate(storedUrl, storedDbName, storedUsername, storedPassword);
-        if (uid) {
-          setIsAuthenticated(true);
-          setConnectionDetails({ url: storedUrl, dbName: storedDbName, username: storedUsername, password: storedPassword });
-          setUid(uid);
+        if (storedUrl && storedDbName && storedUsername && storedPassword) {
+          const uid = await odooService.authenticate(storedUrl, storedDbName, storedUsername, storedPassword);
+          if (uid) {
+            setIsAuthenticated(true);
+            setConnectionDetails({ url: storedUrl, dbName: storedDbName, username: storedUsername, password: storedPassword });
+            setUid(uid);
+          }
         }
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error al cargar los datos almacenados:', error);
+        setIsInitialized(true);
       }
-      setIsInitialized(true);  
     };
-
 
     loadStoredData();
   }, []);
@@ -39,12 +43,14 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         setConnectionDetails({ url, dbName, username, password });
         setUid(uid);
-
-        await AsyncStorage.setItem('url', url);
-        await AsyncStorage.setItem('dbName', dbName);
-        await AsyncStorage.setItem('username', username);
-        await AsyncStorage.setItem('password', password);
-
+  
+        // Guardar los datos y luego obtener el valor encriptado para verificar
+        await SecureStore.setItemAsync('url', url);
+        await SecureStore.setItemAsync('dbName', dbName);
+        await SecureStore.setItemAsync('username', username);
+        await SecureStore.setItemAsync('password', password);
+  
+      
         return uid;
       } else {
         throw new Error('La autenticación con Odoo falló. Verifica tus credenciales.');
@@ -54,11 +60,7 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-
-  if (!isInitialized) {
-    return null;  // Show a loading indicator or splash screen while initializing
-  }
-
+  
   return (
     <AuthContext.Provider value={{ isAuthenticated, authenticate, connectionDetails, uid }}>
       {children}
